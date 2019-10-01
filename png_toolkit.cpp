@@ -32,3 +32,18 @@ image_data png_toolkit::getPixelData( void ) const
 {
     return imgData;
 }
+
+void png_toolkit::Recolor(void) {
+	int h = imgData.h, w = imgData.w;
+	int comp = imgData.compPerPixel;
+	for (int i = comp * w * h / 2; i < comp * w * h; i++) {
+		//recoloring
+		if (i % comp == 0) {
+			imgData.pixels[i] = 255;
+		}
+		else if (!(i % comp == comp - 1)) {
+			imgData.pixels[i] = 0;
+		}
+		
+	}
+}
