@@ -98,8 +98,8 @@ void png_toolkit::Blur(rectangle rect) {
 void png_toolkit::Threshold(rectangle rect) {
 	int w = imgData.w, h = imgData.h;
 	int comp = imgData.compPerPixel;
-	int max_comp = 3;
 	int arr[25];
+	int max_comp = 3;
 	stbi_uc* new_pixels = new stbi_uc[w * h * comp];
 
 	for (int x = rect.a + 2; x < rect.c - 2; x++) {
@@ -119,16 +119,26 @@ void png_toolkit::Threshold(rectangle rect) {
 				}
 			}
 			qsort(arr, 25, sizeof(int), [](const void* x1, const void* x2) ->int { return (*(int*)x1 - *(int*)x2); });
-			int bw = ToBlackWhite(x, y);
-			if (bw > arr[25 / 2]) {
-				for (int d = 0; d < max_comp; ++d)
-					new_pixels[(x + y * w) * comp + d] = bw;
+			int med = arr[25 / 2];
+			for (int s_i = -2; s_i <= 2; ++s_i) {
+				for (int s_j = -2; s_j <= 2; ++s_j) {
+					int x_pos = x + s_i;
+					int y_pos = y + s_j;
+					if (!(x_pos < 0 || x_pos >= w || y_pos < 0 || y_pos >= h)) {
+						int bw = ToBlackWhite(x_pos, y_pos);
+						if (bw < med) {
+							for (int d = 0; d < max_comp; d++) {
+								new_pixels[(x_pos + y_pos * w) * comp + d] = 0;
+							}
+						}
+						else {
+							for (int d = 0; d < max_comp; d++) {
+								new_pixels[(x_pos + y_pos * w) * comp + d] = bw;
+							}
+						}
+					}
+				}
 			}
-			else {
-				for (int d = 0; d < max_comp; ++d)
-					new_pixels[(x + y * w) * comp + d] = 0;
-			}
-			new_pixels[(x + y * w) * comp + comp - 1] = imgData.pixels[(x + y * w) * comp + comp - 1];
 		}
 	}
 	Assign(new_pixels, rect);
@@ -194,6 +204,10 @@ void png_toolkit::Parse(char* filename) {
 			rect.d = imgData.h / d;
 		else
 			rect.d = 0;
+		rect.a = 0;
+		rect.c = imgData.w;
+		rect.b = 0;
+		rect.d = imgData.h;
 		if (strcmp(text, "Red") == 0)
 			Recolor(rect);
 		/*else if (strcmp(text, "Blur") == 0)
