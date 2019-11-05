@@ -1,0 +1,13 @@
+{
+  "version": "0.2.1",
+  "defaults": {},
+  "configurations": [
+    {
+      "type": "default",
+      "project": "CMakeLists.txt",
+      "projectTarget": "student_toolkit.exe",
+      "name": "student_toolkit.exe",
+      "args": [ "config.txt", "babochka.png", "1.png" ]
+    }
+  ]
+}
