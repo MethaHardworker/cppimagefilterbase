@@ -7,7 +7,7 @@
       "project": "CMakeLists.txt",
       "projectTarget": "student_toolkit.exe",
       "name": "student_toolkit.exe",
-      "args": [ "config.txt", "babochka.png", "1.png" ]
+      "args": [ "config.txt", "leo.png", "2.png" ]
     }
   ]
 }

@@ -39,7 +39,7 @@ void png_toolkit::Assign(stbi_uc* new_pixels, rectangle rect)
 	int w = imgData.w;
 	int comp = imgData.compPerPixel;
 	int max_comp = 3;
-	for (int x = rect.a; x < rect.c; ++x) {
+	for (int x = rect.a; x < rect.c; x++) {
 		for (int y = rect.b; y < rect.d; y++) {
 			for (int d = 0; d < max_comp; ++d) {
 				imgData.pixels[(x + y * w) * comp + d] = new_pixels[(x + y * w) * comp + d];
@@ -58,8 +58,8 @@ int png_toolkit::ToBlackWhite(int x, int y)
 void png_toolkit::Recolor(rectangle rect) {
 	int comp = imgData.compPerPixel;
 	int max_comp = 3;
-	for (int x = rect.a; x < rect.c; ++x) {
-		for (int y = rect.b; y < rect.d; ++y) {
+	for (int x = rect.a; x < rect.c; x++) {
+		for (int y = rect.b; y < rect.d; y++) {
 			imgData.pixels[(x + y * imgData.w) * comp] = 255;
 			for (int depth = 1; depth < max_comp; depth++) {
 				imgData.pixels[(x + y * imgData.w) * comp + depth] = 0;
@@ -75,12 +75,12 @@ void png_toolkit::Blur(rectangle rect) {
 	stbi_uc* new_pixels = new stbi_uc[w * h * comp];
 
 	for (int depth = 0; depth < max_comp; depth++) {
-		for (int x = rect.a; x < rect.c; x++) {
-			for (int y = rect.b; y < rect.d; y++) {
+		for (int x = rect.a + 2; x < rect.c - 2; x++) {
+			for (int y = rect.b + 2; y < rect.d - 2; y++) {
 				int point = (x + y * w)* comp + depth;
 				int sum = 0;
-				for (int s_i = -1; s_i <= 1; ++s_i) {
-					for (int s_j = -1; s_j <= 1; ++s_j) {
+				for (int s_i = -2; s_i <= 2; ++s_i) {
+					for (int s_j = -2; s_j <= 2; ++s_j) {
 						int x_pos = x + s_i;
 						int y_pos = y + s_j;
 						if (!(x_pos < 0 || x_pos >= w || y_pos < 0 || y_pos >= h))
@@ -102,8 +102,8 @@ void png_toolkit::Threshold(rectangle rect) {
 	int arr[25];
 	stbi_uc* new_pixels = new stbi_uc[w * h * comp];
 
-	for (int x = rect.a; x < rect.c; x++) {
-		for (int y = rect.b; y < rect.d; y++) {
+	for (int x = rect.a + 2; x < rect.c - 2; x++) {
+		for (int y = rect.b + 2; y < rect.d - 2; y++) {
 			int p = 0;
 			for (int s_i = -2; s_i <= 2; ++s_i) {
 				for (int s_j = -2; s_j <= 2; ++s_j) {
@@ -196,12 +196,12 @@ void png_toolkit::Parse(char* filename) {
 			rect.d = 0;
 		if (strcmp(text, "Red") == 0)
 			Recolor(rect);
-		else if (strcmp(text, "Blur") == 0)
+		/*else if (strcmp(text, "Blur") == 0)
 			Blur(rect);
 		else if (strcmp(text, "Threshold") == 0)
 			Threshold(rect);
 		else if (strcmp(text, "Edge") == 0)
-			Edge(rect);
+			Edge(rect);*/
 	}
 	f.close();
 }
