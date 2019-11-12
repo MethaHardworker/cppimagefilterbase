@@ -3,7 +3,6 @@
 
 #include <string>
 #include <map>
-//#include <memory>
 #include "stb_image.h"
 
 struct image_data
@@ -11,12 +10,6 @@ struct image_data
     stbi_uc *pixels;
     int w, h;
     int compPerPixel;
-};
-struct rectangle {
-	int a;
-	int b;
-	int c;
-	int d;
 };
 
 class png_toolkit
@@ -33,13 +26,7 @@ public:
     bool load( std::string const &pictureName );
     bool save( std::string const &pictureName );
     image_data getPixelData( void ) const;
-	void Assign(stbi_uc* new_pixels, rectangle rect);
-	int ToBlackWhite(int x, int y);
-	void Recolor(rectangle rect);
-	void Blur(rectangle rect);
-	void Threshold(rectangle rect);
-	void Edge(rectangle rect);
-	void Parse(char* filename);
+
 private:
     image_data imgData;
 };
