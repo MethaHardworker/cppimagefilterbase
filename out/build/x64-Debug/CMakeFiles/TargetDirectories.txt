@@ -1,3 +1,0 @@
-C:/Users/karas/cppimagefilterbase/out/build/x64-Debug/CMakeFiles/student_toolkit.dir
-C:/Users/karas/cppimagefilterbase/out/build/x64-Debug/CMakeFiles/edit_cache.dir
-C:/Users/karas/cppimagefilterbase/out/build/x64-Debug/CMakeFiles/rebuild_cache.dir

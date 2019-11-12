@@ -1,8 +1,0 @@
-# ninja log v5
-1	1578	591569620	CMakeFiles/student_toolkit.dir/main.cpp.obj	4a3c2415f8dc9241
-14	1669	591569620	CMakeFiles/student_toolkit.dir/png_toolkit.cpp.obj	291b9dc01935339d
-1670	3755	591569622	student_toolkit.exe	cf70b8158c88031a
-97	4382	591574074	CMakeFiles/student_toolkit.dir/png_toolkit.cpp.obj	291b9dc01935339d
-41	2151	591579123	CMakeFiles/student_toolkit.dir/png_toolkit.cpp.obj	291b9dc01935339d
-2	2227	591579123	CMakeFiles/student_toolkit.dir/main.cpp.obj	4a3c2415f8dc9241
-2228	4249	591579125	student_toolkit.exe	cf70b8158c88031a
