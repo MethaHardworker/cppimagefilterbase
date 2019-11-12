@@ -48,9 +48,11 @@ void filter_applyer::set_filter(char* filtername, image_data& imgData) {
 
 void filter_applyer::parse(char* filename, image_data imgData) {
 	std::ifstream f(filename);
-	if (!f.is_open())
+	if (!f.is_open()) {
+		throw "Bad File!";
 		return;
-	char text[15];
+	}
+	char text[250];
 	image = imgData;
 	while (!f.eof()) {
 		f >> text;
@@ -70,7 +72,7 @@ void filter_applyer::parse(char* filename, image_data imgData) {
 	f.close();
 }
 
-int main( int argc, char *argv[] )
+int main(int argc, char *argv[])
 {
     // toolkit filter_name base_pic_name sudent_tool student_pic_name limitPix limitMSE
     // toolkit near test images!
