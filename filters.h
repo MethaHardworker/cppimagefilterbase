@@ -43,7 +43,7 @@ protected:
 
 class Blur : public convolutional_filter {
 public:
-	Blur(image_data& imgData, int sizeOfKernel = 5);
+	Blur(image_data& imgData, int sizeOfKernel = 3);
 	image_data apply(rectangle rect, image_data& imgData);
 	virtual ~Blur() { };
 };

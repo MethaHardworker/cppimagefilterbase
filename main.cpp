@@ -1,5 +1,6 @@
 #include <iostream>
 #include <fstream>
+#include <string>
 #include "png_toolkit.h"
 #include "structs.h"
 #include "filters.h"
@@ -11,7 +12,7 @@ class filter_applyer {
 public:
 	void parse(char* filename, image_data imgData);
 private:
-	void set_filter(char* fitlername, image_data& newData);
+	void set_filter(std::string fitlername, image_data& newData);
 	void Assign(const image_data& newData, rectangle rect);
 private:
 	abstract_filter* filter;
@@ -33,14 +34,14 @@ void filter_applyer::Assign(const image_data& newData, rectangle rect) {
 	}
 }
 
-void filter_applyer::set_filter(char* filtername, image_data& imgData) {
-	if (strcmp(filtername, "Red") == 0)
+void filter_applyer::set_filter(std::string filtername, image_data& imgData) {
+	if (filtername == "Red")
 		filter = new Red(imgData);
-	else if (strcmp(filtername, "Blur") == 0)
+	else if (filtername == "Blur")
 		filter = new Blur(imgData);
-	else if (strcmp(filtername, "Threshold") == 0)
+	else if (filtername == "Threshold")
 		filter = new Threshold(imgData);
-	else if (strcmp(filtername, "Edge") == 0)
+	else if (filtername == "Edge")
 		filter = new Edge(imgData);
 	else
 		filter = nullptr;
@@ -52,7 +53,7 @@ void filter_applyer::parse(char* filename, image_data imgData) {
 		throw "Bad File!";
 		return;
 	}
-	char text[250];
+	std::string text;
 	image = imgData;
 	while (!f.eof()) {
 		f >> text;
@@ -64,9 +65,10 @@ void filter_applyer::parse(char* filename, image_data imgData) {
 		c != 0 ? rect.c = imgData.w / c : rect.c = 0;
 		d != 0 ? rect.d = imgData.h / d : rect.d = 0;
 		set_filter(text, imgData);
-		if (filter != nullptr)
+		if (filter != nullptr) {
 			filter->apply(rect, imgData);
-		Assign(filter->get_image(), rect);
+			Assign(filter->get_image(), rect);
+		}
 		delete filter;
 	}
 	f.close();

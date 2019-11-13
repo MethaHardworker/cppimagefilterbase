@@ -6,6 +6,13 @@ abstract_filter::abstract_filter(image_data& imgData) {
 	imgCopy.w = imgData.w;
 	imgCopy.h = imgData.h;
 	imgCopy.pixels = new stbi_uc[imgCopy.h * imgCopy.w * imgCopy.compPerPixel];
+	for (int x = 0; x < imgData.w; x++) {
+		for (int y = 0; y < imgData.h; y++) {
+			for (int d = 0; d < QUAN_OF_COLORS; ++d) {
+				imgCopy.pixels[(x + y * imgData.w) * imgData.compPerPixel + d] = imgData.pixels[(x + y * imgData.w) * imgData.compPerPixel + d];
+			}
+		}
+	}
 }
 
 abstract_filter::~abstract_filter() {
@@ -154,14 +161,13 @@ image_data Edge::apply(rectangle rect, image_data& imgData) {
 	int w = imgCopy.w, h = imgCopy.h;
 	int comp = imgCopy.compPerPixel;
 	int max_comp = QUAN_OF_COLORS;
-
-	for (int x = rect.a; x < rect.c; x++) {
-		for (int y = rect.b; y < rect.d; y++) {
+	for (int y = rect.b; y < rect.d; y++) {
+		for (int x = rect.a; x < rect.c; x++) {
 			int point = (x + y * w) * comp;
 			int sum = 0;
 			int p = 0;
-			for (int s_i = -ker.size / 2; s_i <= ker.size / 2; ++s_i) {
-				for (int s_j = -ker.size / 2; s_j <= ker.size / 2; ++s_j) {
+			for (int s_j = -ker.size / 2; s_j <= ker.size / 2; ++s_j) {
+				for (int s_i = -ker.size / 2; s_i <= ker.size / 2; ++s_i) {
 					int x_pos = x + s_i;
 					int y_pos = y + s_j;
 					if (!(x_pos < 0 || x_pos >= w || y_pos < 0 || y_pos >= h))
