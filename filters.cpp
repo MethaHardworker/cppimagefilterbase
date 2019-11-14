@@ -8,8 +8,21 @@ abstract_filter::abstract_filter(image_data& imgData) {
 	imgCopy.pixels = new stbi_uc[imgCopy.h * imgCopy.w * imgCopy.compPerPixel];
 	for (int x = 0; x < imgData.w; x++) {
 		for (int y = 0; y < imgData.h; y++) {
-			for (int d = 0; d < QUAN_OF_COLORS; ++d) {
+			for (int d = 0; d < imgData.compPerPixel; ++d) {
 				imgCopy.pixels[(x + y * imgData.w) * imgData.compPerPixel + d] = imgData.pixels[(x + y * imgData.w) * imgData.compPerPixel + d];
+			}
+		}
+	}
+}
+
+void abstract_filter::Assign(const image_data& imgData, rectangle rect) {
+	int w = imgCopy.w;
+	int comp = imgCopy.compPerPixel;
+	int max_comp = 3;
+	for (int x = rect.a; x < rect.c; x++) {
+		for (int y = rect.b; y < rect.d; y++) {
+			for (int d = 0; d < max_comp; ++d) {
+				imgData.pixels[(x + y * w) * comp + d] = imgCopy.pixels[(x + y * w) * comp + d];
 			}
 		}
 	}
@@ -35,20 +48,6 @@ convolutional_filter::~convolutional_filter()
 	delete ker.ker_matrix;
 }
 
-image_data Red::apply(rectangle rect, image_data& imgData) {
-	int comp = imgCopy.compPerPixel;
-	int max_comp = QUAN_OF_COLORS;
-	for (int x = rect.a; x < rect.c; x++) {
-		for (int y = rect.b; y < rect.d; y++) {
-			imgCopy.pixels[(x + y * imgCopy.w) * comp] = 255;
-			for (int depth = 1; depth < max_comp; depth++) {
-				imgCopy.pixels[(x + y * imgCopy.w) * comp + depth] = 0;
-			}
-		}
-	}
-	return imgCopy;
-}
-
 Threshold::Threshold(image_data& imgData, int sizeOfKernel) : convolutional_filter(imgData) {
 	ker.size = sizeOfKernel;
 	ker.ker_matrix = nullptr;
@@ -71,11 +70,25 @@ Edge::Edge(image_data& imgData, int sizeOfKernel) : convolutional_filter(imgData
 		if (i != sq / 2)
 			ker.ker_matrix[i] = -1;
 		else
-			ker.ker_matrix[i] = sq - 1;
+			ker.ker_matrix[i] = sq;
 	}
 }
 
-image_data Blur::apply(rectangle rect, image_data& imgData) {
+void Red::apply(rectangle rect, image_data& imgData) {
+	int comp = imgCopy.compPerPixel;
+	int max_comp = QUAN_OF_COLORS;
+	for (int x = rect.a; x < rect.c; x++) {
+		for (int y = rect.b; y < rect.d; y++) {
+			imgData.pixels[(x + y * imgData.w) * comp] = 255;
+			for (int color = 1; color < max_comp; color++) {
+				imgData
+					.pixels[(x + y * imgData.w) * comp + color] = 0;
+			}
+		}
+	}
+}
+
+void Blur::apply(rectangle rect, image_data& imgData) {
 	int h = imgCopy.h, w = imgCopy.w;
 	int comp = imgCopy.compPerPixel;
 	int max_comp = QUAN_OF_COLORS;
@@ -91,15 +104,15 @@ image_data Blur::apply(rectangle rect, image_data& imgData) {
 						int x_pos = x + s_i;
 						int y_pos = y + s_j;
 						if (!(x_pos < 0 || x_pos >= w || y_pos < 0 || y_pos >= h))
-							sum += (int)(imgData.pixels[(x_pos + y_pos * w) * comp + depth] * ker.ker_matrix[p]);
+							sum += (int)(imgCopy.pixels[(x_pos + y_pos * w) * comp + depth] * ker.ker_matrix[p]);
 						p++;
 					}
 				}
-				imgCopy.pixels[point] = sum;
+				imgData.pixels[point] = sum;
 			}
 		}
 	}
-	return imgCopy;
+	//Assign(imgData, rect);
 }
 
 int Threshold::find_median(int x, int y, image_data& imgData) {
@@ -111,7 +124,7 @@ int Threshold::find_median(int x, int y, image_data& imgData) {
 			int x_pos = x + s_i;
 			int y_pos = y + s_j;
 			if (!(x_pos < 0 || x_pos >= w || y_pos < 0 || y_pos >= h)) {
-				arr[p] = ToBlackWhite(x_pos, y_pos, imgData);
+				arr[p] = ToBlackWhite(x_pos, y_pos, imgCopy);
 			}
 			else {
 				arr[p] = 0;
@@ -127,20 +140,41 @@ void Threshold::zero_below_median(int x, int y, int med, image_data& imgData) {
 	int w = imgCopy.w, h = imgCopy.h;
 	int comp = imgCopy.compPerPixel;
 	int max_comp = QUAN_OF_COLORS;
+	int max_count = ker.size * ker.size / 2;
+	int counter = 0;
 	for (int s_i = -ker.size / 2; s_i <= ker.size / 2; ++s_i) {
 		for (int s_j = -ker.size / 2; s_j <= ker.size / 2; ++s_j) {
 			int x_pos = x + s_i;
 			int y_pos = y + s_j;
 			if (!(x_pos < 0 || x_pos >= w || y_pos < 0 || y_pos >= h)) {
-				int bw = ToBlackWhite(x_pos, y_pos, imgData);
+				int bw = ToBlackWhite(x_pos, y_pos, imgCopy);
 				if (bw < med) {
 					for (int d = 0; d < max_comp; d++) {
-						imgCopy.pixels[(x_pos + y_pos * w) * comp + d] = 0;
+						imgData.pixels[(x_pos + y_pos * w) * comp + d] = 0;
 					}
+					counter++;
 				}
 				else {
 					for (int d = 0; d < max_comp; d++) {
-						imgCopy.pixels[(x_pos + y_pos * w) * comp + d] = bw;
+						imgData.pixels[(x_pos + y_pos * w) * comp + d] = bw;
+					}
+				}
+			}
+		}
+	}
+	if (counter < max_count) {
+		for (int s_i = -ker.size / 2; s_i <= ker.size / 2; ++s_i) {
+			for (int s_j = -ker.size / 2; s_j <= ker.size / 2; ++s_j) {
+				int x_pos = x + s_i;
+				int y_pos = y + s_j;
+				if (counter == max_count)
+					return;
+				if (!(x_pos < 0 || x_pos >= w || y_pos < 0 || y_pos >= h)) {
+					if (imgCopy.pixels[(x_pos + y_pos * w) * comp] == med) {
+						for (int d = 0; d < max_comp; d++) {
+							imgData.pixels[(x_pos + y_pos * w) * comp + d] = 0;
+						}
+						counter++;
 					}
 				}
 			}
@@ -148,16 +182,15 @@ void Threshold::zero_below_median(int x, int y, int med, image_data& imgData) {
 	}
 }
 
-image_data Threshold::apply(rectangle rect, image_data& imgData) {
+void Threshold::apply(rectangle rect, image_data& imgData) {
 	for (int x = rect.a + ker.size / 2; x < rect.c + ker.size / 2; x+=ker.size) {
 		for (int y = rect.b + ker.size / 2; y < rect.d + ker.size / 2; y+=ker.size) {
 			zero_below_median(x, y, find_median(x, y, imgData), imgData);
 		}
 	}
-	return imgCopy;
 }
 
-image_data Edge::apply(rectangle rect, image_data& imgData) {
+void Edge::apply(rectangle rect, image_data& imgData) {
 	int w = imgCopy.w, h = imgCopy.h;
 	int comp = imgCopy.compPerPixel;
 	int max_comp = QUAN_OF_COLORS;
@@ -171,13 +204,12 @@ image_data Edge::apply(rectangle rect, image_data& imgData) {
 					int x_pos = x + s_i;
 					int y_pos = y + s_j;
 					if (!(x_pos < 0 || x_pos >= w || y_pos < 0 || y_pos >= h))
-						sum += ker.ker_matrix[p] * ToBlackWhite(x_pos, y_pos, imgData);
+						sum += ker.ker_matrix[p] * ToBlackWhite(x_pos, y_pos, imgCopy);
 					p++;
 				}
 			}
 			for (int d = 0; d < max_comp; ++d)
-				imgCopy.pixels[point + d] = sum;
+				imgData.pixels[point + d] = sum;
 		}
 	}
-	return imgCopy;
 }
