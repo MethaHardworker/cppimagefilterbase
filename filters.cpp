@@ -122,9 +122,6 @@ int Threshold::find_median(int x, int y, image_data& imgData) {
 			if (!(x_pos < 0 || x_pos >= w || y_pos < 0 || y_pos >= h)) {
 				ker.ker_matrix.push_back(ToBlackWhite(x_pos, y_pos, imgCopy));
 			}
-			else {
-				
-			}
 		}
 	}
 	std::sort(ker.ker_matrix.begin(), ker.ker_matrix.end());

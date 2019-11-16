@@ -21,9 +21,9 @@ void filter_applyer::parse(char* filename, image_data imgData) {
 	if (!f.is_open()) {
 		return;
 	}
-	std::string text;
 	image = imgData;
 	while (!f.eof()) {
+		std::string text;
 		try {
 			f >> text;
 			int a, b, c, d;
