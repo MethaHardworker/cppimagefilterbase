@@ -1,4 +1,5 @@
 #include "filters.h"
+#include <algorithm>
 
 
 abstract_filter::abstract_filter(image_data& imgData) {
@@ -45,32 +46,29 @@ image_data&& abstract_filter::get_image() {
 
 convolutional_filter::~convolutional_filter()
 {
-	delete ker.ker_matrix;
+	ker.ker_matrix.clear();
 }
 
 Threshold::Threshold(image_data& imgData, int sizeOfKernel) : convolutional_filter(imgData) {
 	ker.size = sizeOfKernel;
-	ker.ker_matrix = nullptr;
 }
 
 Blur::Blur(image_data& imgData, int sizeOfKernel) : convolutional_filter(imgData) {
 	ker.size = sizeOfKernel;
 	double sq = ker.size * ker.size;
-	ker.ker_matrix = new double[sq];
 	for (int i = 0; i < sq; ++i) {
-		ker.ker_matrix[i] = 1 / sq;
+		ker.ker_matrix.push_back(1 / sq);
 	}
 }
 
 Edge::Edge(image_data& imgData, int sizeOfKernel) : convolutional_filter(imgData) {
 	ker.size = sizeOfKernel;
 	const int sq = ker.size * ker.size;
-	ker.ker_matrix = new double[sq];
 	for (int i = 0; i < sq; ++i) {
 		if (i != sq / 2)
-			ker.ker_matrix[i] = -1;
+			ker.ker_matrix.push_back(-1);
 		else
-			ker.ker_matrix[i] = sq;
+			ker.ker_matrix.push_back(sq);
 	}
 }
 
@@ -81,8 +79,7 @@ void Red::apply(rectangle rect, image_data& imgData) {
 		for (int y = rect.b; y < rect.d; y++) {
 			imgData.pixels[(x + y * imgData.w) * comp] = 255;
 			for (int color = 1; color < max_comp; color++) {
-				imgData
-					.pixels[(x + y * imgData.w) * comp + color] = 0;
+				imgData.pixels[(x + y * imgData.w) * comp + color] = 0;
 			}
 		}
 	}
@@ -117,30 +114,31 @@ void Blur::apply(rectangle rect, image_data& imgData) {
 
 int Threshold::find_median(int x, int y, image_data& imgData) {
 	int w = imgCopy.w, h = imgCopy.h;
-	int arr[25];
-	int p = 0;
+	int res;
 	for (int s_i = -ker.size / 2; s_i <= ker.size / 2; ++s_i) {
 		for (int s_j = -ker.size / 2; s_j <= ker.size / 2; ++s_j) {
 			int x_pos = x + s_i;
 			int y_pos = y + s_j;
 			if (!(x_pos < 0 || x_pos >= w || y_pos < 0 || y_pos >= h)) {
-				arr[p] = ToBlackWhite(x_pos, y_pos, imgCopy);
+				ker.ker_matrix.push_back(ToBlackWhite(x_pos, y_pos, imgCopy));
 			}
 			else {
-				arr[p] = 0;
+				
 			}
-			p++;
 		}
 	}
-	qsort(arr, ker.size * ker.size, sizeof(int), [](const void* x1, const void* x2) ->int { return (*(int*)x2 - *(int*)x1); });
-	return arr[ker.size * ker.size / 2];
+	std::sort(ker.ker_matrix.begin(), ker.ker_matrix.end());
+	res = ker.ker_matrix[ker.ker_matrix.size() / 2];
+	ker.ker_matrix.clear();
+	//[](const void* x1, const void* x2) ->int { return (*(int*)x2 - *(int*)x1); };
+	return res;
 }
 
 void Threshold::zero_below_median(int x, int y, int med, image_data& imgData) {
 	int w = imgCopy.w, h = imgCopy.h;
 	int comp = imgCopy.compPerPixel;
 	int max_comp = QUAN_OF_COLORS;
-	int max_count = ker.size * ker.size / 2;
+	int max_count = ker.ker_matrix.size() / 2;
 	int counter = 0;
 	for (int s_i = -ker.size / 2; s_i <= ker.size / 2; ++s_i) {
 		for (int s_j = -ker.size / 2; s_j <= ker.size / 2; ++s_j) {

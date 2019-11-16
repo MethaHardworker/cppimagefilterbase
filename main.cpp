@@ -6,7 +6,7 @@
 
 int main(int argc, char *argv[])
 {
-    // toolkit filter_name base_pic_name sudent_tool student_pic_name limitPix limitMSE
+    // toolkit filter_name base_pic_name student_tool student_pic_name limitPix limitMSE
     // toolkit near test images!
     try
     {

@@ -1,4 +1,5 @@
 #pragma once
+#include <vector>
 struct rectangle {
 	int a;
 	int b;
@@ -8,5 +9,5 @@ struct rectangle {
 
 struct kernel {
 	int size;
-	double* ker_matrix;
+	std::vector<double> ker_matrix;
 };
