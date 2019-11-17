@@ -29,7 +29,7 @@ void filter_applyer::parse(char* filename, image_data imgData) {
 			int a, b, c, d;
 			f >> b >> a >> d >> c;
 			rectangle rect;
-			a == 0 ? rect.a = 0 : rect.a = imgData.w / a + 1;
+			a == 0 ? rect.a = 0 : rect.a = imgData.w / a - 1;
 			b == 0 ? rect.b = 0 : rect.b = imgData.h / b;
 			c == 0 ? rect.c = 0 : rect.c = imgData.w / c;
 			d == 0 ? rect.d = 0 : rect.d = imgData.h / d;
