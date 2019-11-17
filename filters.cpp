@@ -75,7 +75,7 @@ Edge::Edge(image_data& imgData, int sizeOfKernel) : convolutional_filter(imgData
 void Red::apply(rectangle rect, image_data& imgData) {
 	int comp = imgCopy.compPerPixel;
 	int max_comp = QUAN_OF_COLORS;
-	for (int x = rect.a; x < rect.c + 1; x++) {
+	for (int x = rect.a; x < rect.c; x++) {
 		for (int y = rect.b; y < rect.d; y++) {
 			imgData.pixels[(x + y * imgData.w) * comp] = 255;
 			for (int color = 1; color < max_comp; color++) {
