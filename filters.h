@@ -38,7 +38,7 @@ public:
 	void apply(rectangle rect, image_data& imgData);
 	virtual ~Threshold() { };
 protected:
-	int find_median(int x, int y, image_data& imgData);
+	int find_median(int x, int y, rectangle rect);
 	void zero_below_median(int x, int y, int med, image_data& imgData);
 };
 

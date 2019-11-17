@@ -86,7 +86,7 @@ void Red::apply(rectangle rect, image_data& imgData) {
 }
 
 void Blur::apply(rectangle rect, image_data& imgData) {
-	int h = imgCopy.h, w = imgCopy.w;
+	int w = imgCopy.w;
 	int comp = imgCopy.compPerPixel;
 	int max_comp = QUAN_OF_COLORS;
 
@@ -100,7 +100,7 @@ void Blur::apply(rectangle rect, image_data& imgData) {
 					for (int s_j = -ker.size / 2; s_j <= ker.size / 2; ++s_j) {
 						int x_pos = x + s_i;
 						int y_pos = y + s_j;
-						if (!(x_pos < 0 || x_pos >= w || y_pos < 0 || y_pos >= h))
+						if (!(x_pos < rect.a || x_pos >= rect.c || y_pos < rect.b || y_pos >= rect.d))
 							sum += (int)(imgCopy.pixels[(x_pos + y_pos * w) * comp + depth] * ker.ker_matrix[p]);
 						p++;
 					}
@@ -112,14 +112,13 @@ void Blur::apply(rectangle rect, image_data& imgData) {
 	//Assign(imgData, rect);
 }
 
-int Threshold::find_median(int x, int y, image_data& imgData) {
-	int w = imgCopy.w, h = imgCopy.h;
+int Threshold::find_median(int x, int y, rectangle rect) {
 	int res;
 	for (int s_i = -ker.size / 2; s_i <= ker.size / 2; ++s_i) {
 		for (int s_j = -ker.size / 2; s_j <= ker.size / 2; ++s_j) {
 			int x_pos = x + s_i;
 			int y_pos = y + s_j;
-			if (!(x_pos < 0 || x_pos >= w || y_pos < 0 || y_pos >= h)) {
+			if (!(x_pos < rect.a || x_pos >= rect.c || y_pos < rect.b || y_pos >= rect.d)) {
 				ker.ker_matrix.push_back(ToBlackWhite(x_pos, y_pos, imgCopy));
 			}
 		}
@@ -180,13 +179,13 @@ void Threshold::zero_below_median(int x, int y, int med, image_data& imgData) {
 void Threshold::apply(rectangle rect, image_data& imgData) {
 	for (int x = rect.a + ker.size / 2; x < rect.c + ker.size / 2; x+=ker.size) {
 		for (int y = rect.b + ker.size / 2; y < rect.d + ker.size / 2; y+=ker.size) {
-			zero_below_median(x, y, find_median(x, y, imgData), imgData);
+			zero_below_median(x, y, find_median(x, y, rect), imgData);
 		}
 	}
 }
 
 void Edge::apply(rectangle rect, image_data& imgData) {
-	int w = imgCopy.w, h = imgCopy.h;
+	int w = imgCopy.w;
 	int comp = imgCopy.compPerPixel;
 	int max_comp = QUAN_OF_COLORS;
 	for (int y = rect.b; y < rect.d; y++) {
@@ -198,7 +197,7 @@ void Edge::apply(rectangle rect, image_data& imgData) {
 				for (int s_i = -ker.size / 2; s_i <= ker.size / 2; ++s_i) {
 					int x_pos = x + s_i;
 					int y_pos = y + s_j;
-					if (!(x_pos < 0 || x_pos >= w || y_pos < 0 || y_pos >= h))
+					if (!(x_pos < rect.a || x_pos >= rect.c || y_pos < rect.b || y_pos >= rect.d))
 						sum += ker.ker_matrix[p] * ToBlackWhite(x_pos, y_pos, imgCopy);
 					p++;
 				}
