@@ -130,7 +130,7 @@ int Threshold::find_median(int x, int y, rectangle rect) {
 	return res;
 }
 
-void Threshold::zero_below_median(int x, int y, int med, image_data& imgData) {
+void Threshold::zero_below_median(int x, int y, int med, rectangle rect, image_data& imgData) {
 	int w = imgCopy.w, h = imgCopy.h;
 	int comp = imgCopy.compPerPixel;
 	int max_comp = QUAN_OF_COLORS;
@@ -140,7 +140,7 @@ void Threshold::zero_below_median(int x, int y, int med, image_data& imgData) {
 		for (int s_j = -ker.size / 2; s_j <= ker.size / 2; ++s_j) {
 			int x_pos = x + s_i;
 			int y_pos = y + s_j;
-			if (!(x_pos < 0 || x_pos >= w || y_pos < 0 || y_pos >= h)) {
+			if (!(x_pos < rect.a || x_pos >= rect.c || y_pos < rect.b || y_pos >= rect.d)) {
 				int bw = ToBlackWhite(x_pos, y_pos, imgCopy);
 				if (bw < med) {
 					for (int d = 0; d < max_comp; d++) {
@@ -163,7 +163,7 @@ void Threshold::zero_below_median(int x, int y, int med, image_data& imgData) {
 				int y_pos = y + s_j;
 				if (counter == max_count)
 					return;
-				if (!(x_pos < 0 || x_pos >= w || y_pos < 0 || y_pos >= h)) {
+				if (!(x_pos < rect.a || x_pos >= rect.c || y_pos < rect.b || y_pos >= rect.d)) {
 					if (imgCopy.pixels[(x_pos + y_pos * w) * comp] == med) {
 						for (int d = 0; d < max_comp; d++) {
 							imgData.pixels[(x_pos + y_pos * w) * comp + d] = 0;
@@ -179,7 +179,7 @@ void Threshold::zero_below_median(int x, int y, int med, image_data& imgData) {
 void Threshold::apply(rectangle rect, image_data& imgData) {
 	for (int x = rect.a + ker.size / 2; x < rect.c + ker.size / 2; x+=ker.size) {
 		for (int y = rect.b + ker.size / 2; y < rect.d + ker.size / 2; y+=ker.size) {
-			zero_below_median(x, y, find_median(x, y, rect), imgData);
+			zero_below_median(x, y, find_median(x, y, rect), rect, imgData);
 		}
 	}
 }
