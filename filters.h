@@ -39,7 +39,7 @@ public:
 	virtual ~Threshold() { };
 protected:
 	int find_median(int x, int y, rectangle rect);
-	void zero_below_median(int x, int y, int med, image_data& imgData);
+	void zero_below_median(int x, int y, int med, rectangle rect, image_data& imgData);
 };
 
 class Blur : public convolutional_filter {
