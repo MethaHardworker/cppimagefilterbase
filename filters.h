@@ -9,10 +9,15 @@ public:
 	image_data&& get_image();
 	virtual ~abstract_filter();
 protected:
+	bool IsInBorder(rectangle rect, int x, int y);
+	int SmartAssignVal(int val);
 	int ToBlackWhite(int x, int y, image_data& imgData);
 	void Assign(const image_data& newData, rectangle rect);
 protected:
 	const int QUAN_OF_COLORS = 3;
+	const int MAX_VAL_OF_COLOR = 255;
+	const int MIN_VAL_OF_COLOR = 0;
+
 	image_data imgCopy;
 };
 
@@ -21,9 +26,6 @@ public:
 	void apply(rectangle rect, image_data& imgData);
 	Red(image_data& imgData) : abstract_filter(imgData) { };
 	~Red() { };
-private:
-	const int MAX_VAL_OF_COLOR = 255;
-	const int MIN_VAL_OF_COLOR = 0;
 };
 
 class convolutional_filter : public abstract_filter {

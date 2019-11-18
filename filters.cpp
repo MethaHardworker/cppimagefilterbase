@@ -33,6 +33,19 @@ abstract_filter::~abstract_filter() {
 	delete[] imgCopy.pixels;
 }
 
+bool abstract_filter::IsInBorder(rectangle rect, int x, int y) {
+	return (x >= rect.a && x < rect.c && y >= rect.b && y < rect.d);
+}
+
+int abstract_filter::SmartAssignVal(int val) {
+	if (val > MAX_VAL_OF_COLOR)
+		return MAX_VAL_OF_COLOR;
+	else if (val < MIN_VAL_OF_COLOR)
+		return MIN_VAL_OF_COLOR;
+	else
+		return val;
+}
+
 int abstract_filter::ToBlackWhite(int x, int y, image_data& imgData) {
 	return (int)(
 		0.3 * (double)imgData.pixels[(x + y * imgData.w) * imgData.compPerPixel + 0]
@@ -101,7 +114,7 @@ void Blur::apply(rectangle rect, image_data& imgData) {
 					for (int s_j = -ker.size / 2; s_j <= ker.size / 2; ++s_j) {
 						int x_pos = x + s_i;
 						int y_pos = y + s_j;
-						if (!(x_pos < rect.a || x_pos >= rect.c || y_pos < rect.b || y_pos >= rect.d))
+						if (IsInBorder(rect, x_pos, y_pos))
 							sum += (int)(imgCopy.pixels[(x_pos + y_pos * w) * comp + depth] * ker.ker_matrix[p]);
 						p++;
 					}
@@ -136,8 +149,8 @@ void Threshold::apply(rectangle rect, image_data& imgData) {
 	int w = imgCopy.w;
 	int comp = imgCopy.compPerPixel;
 	int max_comp = QUAN_OF_COLORS;
-	for (int x = rect.a + ker.size / 2; x < rect.c + ker.size / 2; x+=ker.size) {
-		for (int y = rect.b + ker.size / 2; y < rect.d + ker.size / 2; y+=ker.size) {
+	for (int x = rect.a; x < rect.c; ++x) {
+		for (int y = rect.b; y < rect.d; ++y) {
 			int bw = ToBlackWhite(x, y, imgCopy);
 			int med = find_median(x, y, rect);
 			if (bw < med) {
@@ -173,7 +186,7 @@ void Edge::apply(rectangle rect, image_data& imgData) {
 				}
 			}
 			for (int d = 0; d < max_comp; ++d)
-				imgData.pixels[point + d] = sum;
+				imgData.pixels[point + d] = SmartAssignVal(sum);
 		}
 	}
 }

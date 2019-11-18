@@ -10,5 +10,5 @@ struct rectangle {
 struct kernel {
 	int size;
 	int norm;
-	std::vector<double> ker_matrix;
+	std::vector<int> ker_matrix;
 };
