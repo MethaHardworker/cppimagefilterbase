@@ -136,9 +136,6 @@ int Threshold::find_median(int x, int y, rectangle rect) {
 			if (IsInBorder(rect, x, y)) {
 				ker.ker_matrix.push_back(ToBlackWhite(x_pos, y_pos, imgCopy));
 			}
-			else {
-				ker.ker_matrix.push_back(0);
-			}
 		}
 	}
 	std::sort(ker.ker_matrix.begin(), ker.ker_matrix.end());
