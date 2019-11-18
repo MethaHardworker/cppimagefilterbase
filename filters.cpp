@@ -105,8 +105,8 @@ void Blur::apply(rectangle rect, image_data& imgData) {
 	int max_comp = QUAN_OF_COLORS;
 
 	for (int depth = 0; depth < max_comp; depth++) {
-		for (int x = rect.a + ker.size / 2; x < rect.c - ker.size / 2; x++) {
-			for (int y = rect.b + ker.size / 2; y < rect.d - ker.size / 2; y++) {
+		for (int x = rect.a; x < rect.c; x++) {
+			for (int y = rect.b; y < rect.d; y++) {
 				int point = (x + y * w) * comp + depth;
 				int sum = 0;
 				int p = 0;
@@ -133,8 +133,11 @@ int Threshold::find_median(int x, int y, rectangle rect) {
 		for (int s_j = -ker.size / 2; s_j <= ker.size / 2; ++s_j) {
 			int x_pos = x + s_i;
 			int y_pos = y + s_j;
-			if (!(x_pos < rect.a || x_pos >= rect.c || y_pos < rect.b || y_pos >= rect.d)) {
+			if (IsInBorder(rect, x, y)) {
 				ker.ker_matrix.push_back(ToBlackWhite(x_pos, y_pos, imgCopy));
+			}
+			else {
+				ker.ker_matrix.push_back(0);
 			}
 		}
 	}
@@ -180,7 +183,7 @@ void Edge::apply(rectangle rect, image_data& imgData) {
 				for (int s_i = -ker.size / 2; s_i <= ker.size / 2; ++s_i) {
 					int x_pos = x + s_i;
 					int y_pos = y + s_j;
-					if (!(x_pos < rect.a || x_pos >= rect.c || y_pos < rect.b || y_pos >= rect.d))
+					if (IsInBorder(rect, x_pos, y_pos))
 						sum += ker.ker_matrix[p] * ToBlackWhite(x_pos, y_pos, imgCopy);
 					p++;
 				}
