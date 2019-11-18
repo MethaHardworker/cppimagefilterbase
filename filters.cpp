@@ -156,14 +156,14 @@ void Threshold::apply(rectangle rect, image_data& imgData) {
 		for (int y = rect.b; y < rect.d; ++y) {
 			int bw = ToBlackWhite(x, y, imgCopy);
 			int med = find_median(x, y, rect);
-			if (bw > med) {
+			if (bw < med) {
 				for (int d = 0; d < max_comp; d++) {
-					imgData.pixels[(x + y * w) * comp + d] = bw;
+					imgData.pixels[(x + y * w) * comp + d] = 0;
 				}
 			}
 			else {
 				for (int d = 0; d < max_comp; d++) {
-					imgData.pixels[(x + y * w) * comp + d] = 0;
+					imgData.pixels[(x + y * w) * comp + d] = bw;
 				}
 			}
 		}
