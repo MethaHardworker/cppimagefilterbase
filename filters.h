@@ -21,6 +21,9 @@ public:
 	void apply(rectangle rect, image_data& imgData);
 	Red(image_data& imgData) : abstract_filter(imgData) { };
 	~Red() { };
+private:
+	const int MAX_VAL_OF_COLOR = 255;
+	const int MIN_VAL_OF_COLOR = 0;
 };
 
 class convolutional_filter : public abstract_filter {
@@ -39,7 +42,6 @@ public:
 	virtual ~Threshold() { };
 protected:
 	int find_median(int x, int y, rectangle rect);
-	void zero_below_median(int x, int y, int med, rectangle rect, image_data& imgData);
 };
 
 class Blur : public convolutional_filter {
