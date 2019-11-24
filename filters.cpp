@@ -16,16 +16,11 @@ abstract_filter::abstract_filter(image_data& imgData) {
 	}
 }
 
-void abstract_filter::Assign(const image_data& imgData, rectangle rect) {
-	int w = imgCopy.w;
-	int comp = imgCopy.compPerPixel;
-	int max_comp = 3;
-	for (int x = rect.a; x < rect.c; x++) {
-		for (int y = rect.b; y < rect.d; y++) {
-			for (int d = 0; d < max_comp; ++d) {
-				imgData.pixels[(x + y * w) * comp + d] = imgCopy.pixels[(x + y * w) * comp + d];
-			}
-		}
+void abstract_filter::AssignToAllLevels(int value, image_data& imgData, int x, int y) {
+	int comp = imgData.compPerPixel;
+	int max_comp = QUAN_OF_COLORS;
+	for (int depth = 0; depth < max_comp; depth++) {
+		imgData.pixels[(x + y * imgData.w) * comp + depth] = value;
 	}
 }
 
@@ -47,21 +42,43 @@ int abstract_filter::SmartAssignVal(int val) {
 }
 
 int abstract_filter::ToBlackWhite(int x, int y, image_data& imgData) {
-	return (int)(
-		0.3 * (double)imgData.pixels[(x + y * imgData.w) * imgData.compPerPixel + 0]
-		+ 0.6 * (double)imgData.pixels[(x + y * imgData.w) * imgData.compPerPixel + 1]
-		+ 0.1 * (double)imgData.pixels[(x + y * imgData.w) * imgData.compPerPixel + 2]);
+	return (
+		  3 * imgData.pixels[(x + y * imgData.w) * imgData.compPerPixel + 0]
+		+ 6 * imgData.pixels[(x + y * imgData.w) * imgData.compPerPixel + 1]
+		+ 1 * imgData.pixels[(x + y * imgData.w) * imgData.compPerPixel + 2]) / 10;
 }
 
 image_data&& abstract_filter::get_image() {
 	return std::move(imgCopy);
 }
 
+void convolutional_filter::convolute(rectangle rect, image_data& imgData, int level) {
+	int w = imgCopy.w, comp = imgCopy.compPerPixel;
+	for (int x = rect.a; x < rect.c; x++) {
+		for (int y = rect.b; y < rect.d; y++) {
+			int point = (x + y * w) * comp + level;
+			int sum = 0;
+			int p = 0;
+			for (int s_i = -ker.size / 2; s_i <= ker.size / 2; ++s_i) {
+				for (int s_j = -ker.size / 2; s_j <= ker.size / 2; ++s_j) {
+					int x_pos = x + s_i;
+					int y_pos = y + s_j;
+					if (IsInBorder(rect, x_pos, y_pos))
+						sum += (int)(imgCopy.pixels[(x_pos + y_pos * w) * comp + level] * ker.ker_matrix[p]);
+					p++;
+				}
+			}
+			sum /= ker.norm;
+			imgData.pixels[point] = SmartAssignVal(sum);
+		}
+	}
+}
+
 convolutional_filter::~convolutional_filter() {
 	ker.ker_matrix.clear();
 }
 
-Threshold::Threshold(image_data& imgData, int sizeOfKernel) : convolutional_filter(imgData) {
+Threshold::Threshold(image_data& imgData, int sizeOfKernel) : abstract_filter(imgData) {
 	ker.size = sizeOfKernel;
 }
 
@@ -86,6 +103,15 @@ Edge::Edge(image_data& imgData, int sizeOfKernel) : convolutional_filter(imgData
 	ker.norm = 1;
 }
 
+void BlackWhite::apply(rectangle rect, image_data& imgData) {
+	int comp = imgCopy.compPerPixel;
+	for (int x = rect.a; x < rect.c; x++) {
+		for (int y = rect.b; y < rect.d; y++) {
+			imgData.pixels[(x + y * imgData.w) * comp] = ToBlackWhite(x, y, imgCopy);
+		}
+	}
+}
+
 void Red::apply(rectangle rect, image_data& imgData) {
 	int comp = imgCopy.compPerPixel;
 	int max_comp = QUAN_OF_COLORS;
@@ -100,31 +126,10 @@ void Red::apply(rectangle rect, image_data& imgData) {
 }
 
 void Blur::apply(rectangle rect, image_data& imgData) {
-	int w = imgCopy.w;
-	int comp = imgCopy.compPerPixel;
 	int max_comp = QUAN_OF_COLORS;
-
 	for (int depth = 0; depth < max_comp; depth++) {
-		for (int x = rect.a; x < rect.c; x++) {
-			for (int y = rect.b; y < rect.d; y++) {
-				int point = (x + y * w) * comp + depth;
-				int sum = 0;
-				int p = 0;
-				for (int s_i = -ker.size / 2; s_i <= ker.size / 2; ++s_i) {
-					for (int s_j = -ker.size / 2; s_j <= ker.size / 2; ++s_j) {
-						int x_pos = x + s_i;
-						int y_pos = y + s_j;
-						if (IsInBorder(rect, x_pos, y_pos))
-							sum += (int)(imgCopy.pixels[(x_pos + y_pos * w) * comp + depth] * ker.ker_matrix[p]);
-						p++;
-					}
-				}
-				sum /= ker.norm;
-				imgData.pixels[point] = sum;
-			}
-		}
+		convolute(rect, imgData, depth);
 	}
-	//Assign(imgData, rect);
 }
 
 int Threshold::find_median(int x, int y, rectangle rect) {
@@ -133,7 +138,7 @@ int Threshold::find_median(int x, int y, rectangle rect) {
 		for (int s_j = -ker.size / 2; s_j <= ker.size / 2; ++s_j) {
 			int x_pos = x + s_i;
 			int y_pos = y + s_j;
-			if (IsInBorder(rect, x, y)) {
+			if (IsInBorder(rect, x_pos, y_pos)) {
 				ker.ker_matrix.push_back(ToBlackWhite(x_pos, y_pos, imgCopy));
 			}
 		}
@@ -168,25 +173,15 @@ void Threshold::apply(rectangle rect, image_data& imgData) {
 }
 
 void Edge::apply(rectangle rect, image_data& imgData) {
-	int w = imgCopy.w;
-	int comp = imgCopy.compPerPixel;
-	int max_comp = QUAN_OF_COLORS;
-	for (int y = rect.b; y < rect.d; y++) {
-		for (int x = rect.a; x < rect.c; x++) {
-			int point = (x + y * w) * comp;
-			int sum = 0;
-			int p = 0;
-			for (int s_j = -ker.size / 2; s_j <= ker.size / 2; ++s_j) {
-				for (int s_i = -ker.size / 2; s_i <= ker.size / 2; ++s_i) {
-					int x_pos = x + s_i;
-					int y_pos = y + s_j;
-					if (IsInBorder(rect, x_pos, y_pos))
-						sum += ker.ker_matrix[p] * ToBlackWhite(x_pos, y_pos, imgCopy);
-					p++;
-				}
-			}
-			for (int d = 0; d < max_comp; ++d)
-				imgData.pixels[point + d] = SmartAssignVal(sum);
+	int w = imgData.w; 
+	int comp = imgData.compPerPixel;
+	BlackWhite bw_filter(imgData);
+	bw_filter.apply(rect, imgData);
+	convolute(rect, imgData, 0);
+	for (int x = rect.a; x < rect.c; ++x) {
+		for (int y = rect.b; y < rect.d; ++y) {
+			int val = imgData.pixels[(x + y * w) * comp];
+			AssignToAllLevels(val, imgData, x, y);
 		}
 	}
 }
