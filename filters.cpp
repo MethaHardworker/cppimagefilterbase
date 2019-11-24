@@ -107,7 +107,7 @@ void BlackWhite::apply(rectangle rect, image_data& imgData) {
 	int comp = imgCopy.compPerPixel;
 	for (int x = rect.a; x < rect.c; x++) {
 		for (int y = rect.b; y < rect.d; y++) {
-			imgData.pixels[(x + y * imgData.w) * comp] = ToBlackWhite(x, y, imgCopy);
+			imgCopy.pixels[(x + y * imgData.w) * comp] = ToBlackWhite(x, y, imgData);
 		}
 	}
 }
