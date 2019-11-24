@@ -107,7 +107,7 @@ void BlackWhite::apply(rectangle rect, image_data& imgData) {
 	int comp = imgCopy.compPerPixel;
 	for (int x = rect.a; x < rect.c; x++) {
 		for (int y = rect.b; y < rect.d; y++) {
-			imgCopy.pixels[(x + y * imgData.w) * comp] = ToBlackWhite(x, y, imgData);
+			imgData.pixels[(x + y * imgData.w) * comp] = ToBlackWhite(x, y, imgData);
 		}
 	}
 }
@@ -175,8 +175,8 @@ void Threshold::apply(rectangle rect, image_data& imgData) {
 void Edge::apply(rectangle rect, image_data& imgData) {
 	int w = imgData.w; 
 	int comp = imgData.compPerPixel;
-	BlackWhite bw_filter(imgData);
-	bw_filter.apply(rect, imgData);
+	BlackWhite bw_filter(imgCopy);
+	bw_filter.apply(rect, imgCopy);
 	convolute(rect, imgData, 0);
 	for (int x = rect.a; x < rect.c; ++x) {
 		for (int y = rect.b; y < rect.d; ++y) {
